@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>魏羽綢繆</title>
+<style>
+:root {
+  --bg-light: #F5EFE7;
+  --bg-dark: #A8B3C2;
+  --accent: #5B6770;
+  --dark: #333;
+  --light: #fff;
+
+  --S: #5B6770; /* 高階 */
+  --A: #7E8A9A; /* 中高階 */
+  --B: #A8B3C2; /* 中階 */
+  --C: #D9DCE1; /* 中初階 */
+  --D: #F5EFE7; /* 初階 */
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+  margin: 0; padding: 20px;
+  background: linear-gradient(135deg, var(--bg-light), var(--bg-dark));
+}
+
+h1 { 
+  text-align: center; 
+  color: var(--accent); 
+  font-size: 28px; 
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+#controls { text-align: center; margin: 15px 0; }
+#controls input, #controls select, #controls button { padding: 8px; margin: 4px; font-size: 15px; }
+
+button { 
+  border: none; 
+  border-radius: 12px; 
+  background-color: var(--accent); 
+  color: var(--light); 
+  cursor: pointer; 
+  font-weight: bold; 
+  transition:0.3s;
+}
+button:hover { background-color:#333; }
+
+.container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 左側休息區 */
+#bench {
+  flex: 1;
+  min-width: 220px;
+  background: var(--light);
+  border: 3px solid var(--accent);
+  border-radius: 20px;
+  padding: 10px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+#bench h3 { color: var(--accent); text-align:center; margin:8px 0; font-weight:bold; }
+.player-zone { flex-grow:1; overflow-y:auto; }
+
+/* 右側場地 + 等候區 */
+.right-side {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.row { display:flex; gap: 15px; }
+
+.area {
+  flex:1;
+  background: var(--light);
+  border:3px solid var(--accent);
+  border-radius:20px;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  min-height: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.area h3 { color: var(--accent); text-align:center; margin:6px 0; font-weight:bold; }
+.area-controls { text-align:center; margin-top:6px; }
+.timer { font-size:14px; color:var(--dark); margin-left:6px; }
+
+/* 球員 */
+.player { 
+  position: relative;
+  padding: 8px 10px;
+  margin: 6px 0;
+  border-radius:10px;
+  font-weight:bold;
+  text-align:center;
+  cursor:grab;
+}
+.player.高階{background:var(--S); color:var(--light);}
+.player.中高階{background:var(--A); color:var(--light);}
+.player.中階{background:var(--B); color:var(--dark);}
+.player.中初階{background:var(--C); color:var(--dark);}
+.player.初階{background:var(--D); color:var(--dark);}
+
+/* 手機自適應 */
+@media (max-width:768px){
+  .container{flex-direction:column;}
+  .row{flex-direction:column;}
+  #bench{width:100%;height:auto;}
+  .area{min-height:auto;}
+}
+</style>
+</head>
+<body>
+<h1>魏羽綢繆</h1>
+
+<div id="controls">
+  <input type="text" id="newPlayer" placeholder="輸入球員名稱">
+  <select id="playerLevel">
+    <option value="高階">高階</option>
+    <option value="中高階">中高階</option>
+    <option value="中階">中階</option>
+    <option value="中初階">中初階</option>
+    <option value="初階">初階</option>
+  </select>
+  <button onclick="addPlayer()">新增球員</button>
+  <button onclick="resetAll()">重置</button>
+</div>
+
+<div class="container">
+  <!-- 左側休息區 -->
+  <div id="bench">
+    <h3>休息區</h3>
+    <div class="player-zone" id="bench-zone"></div>
+  </div>
+
+  <!-- 右側四列 -->
+  <div class="right-side">
+    <!-- 第一列：場地 -->
+    <div class="row">
+      <div class="area" id="court1">
+        <h3>場地1 <span class="timer" id="court1-timer">⏱ 00:00</span></h3>
+        <div class="player-zone" id="court1-zone"></div>
+        <div class="area-controls"><button onclick="endMatch('court1')">結束比賽</button></div>
+      </div>
+      <div class="area" id="court2">
+        <h3>場地2 <span class="timer" id="court2-timer">⏱ 00:00</span></h3>
+        <div class="player-zone" id="court2-zone"></div>
+        <div class="area-controls"><button onclick="endMatch('court2')">結束比賽</button></div>
+      </div>
+      <div class="area" id="court3">
+        <h3>場地3 <span class="timer" id="court3-timer">⏱ 00:00</span></h3>
+        <div class="player-zone" id="court3-zone"></div>
+        <div class="area-controls"><button onclick="endMatch('court3')">結束比賽</button></div>
+      </div>
+      <div class="area" id="court4">
+        <h3>場地4 <span class="timer" id="court4-timer">⏱ 00:00</span></h3>
+        <div class="player-zone" id="court4-zone"></div>
+        <div class="area-controls"><button onclick="endMatch('court4')">結束比賽</button></div>
+      </div>
+    </div>
+    <!-- 第二列：等候區 -->
+    <div class="row">
+      <div class="area">
+        <h3>等待區1</h3>
+        <div class="player-zone" id="waitingA-zone"></div>
+      </div>
+      <div class="area">
+        <h3>等待區2</h3>
+        <div class="player-zone" id="waitingB-zone"></div>
+      </div>
+      <div class="area">
+        <h3>等待區3</h3>
+        <div class="player-zone" id="waitingC-zone"></div>
+      </div>
+      <div class="area">
+        <h3>等待區4</h3>
+        <div class="player-zone" id="waitingD-zone"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+const maxPlayersPerArea = 4;
+const areaIds = [
+  'bench-zone',
+  'court1-zone','court2-zone','court3-zone','court4-zone',
+  'waitingA-zone','waitingB-zone','waitingC-zone','waitingD-zone'
+];
+
+// 計時器資料
+let courtTimers = {
+  court1:{interval:null, seconds:0},
+  court2:{interval:null, seconds:0},
+  court3:{interval:null, seconds:0},
+  court4:{interval:null, seconds:0}
+};
+function formatTime(sec){ let m=String(Math.floor(sec/60)).padStart(2,'0'); let s=String(sec%60).padStart(2,'0'); return m+':'+s; }
+function startTimer(courtId){
+  if(courtTimers[courtId].interval) return;
+  courtTimers[courtId].seconds=0;
+  courtTimers[courtId].interval=setInterval(()=>{
+    courtTimers[courtId].seconds++;
+    document.getElementById(courtId+'-timer').textContent='⏱ '+formatTime(courtTimers[courtId].seconds);
+  },1000);
+}
+function stopTimer(courtId){
+  clearInterval(courtTimers[courtId].interval);
+  courtTimers[courtId].interval=null;
+  document.getElementById(courtId+'-timer').textContent='⏱ 00:00';
+}
+
+// 新增球員 (只顯示名字，不加等級文字)
+function addPlayer(){
+  const name=document.getElementById('newPlayer').value.trim();
+  const level=document.getElementById('playerLevel').value;
+  if(!name) return;
+  const div=document.createElement('div');
+  div.className='player '+level;
+  div.textContent=name; // 只顯示名字
+  document.getElementById('bench-zone').appendChild(div);
+  document.getElementById('newPlayer').value='';
+}
+
+// 結束比賽
+function endMatch(courtId){
+  const courtZone=document.getElementById(courtId+'-zone');
+  const benchZone=document.getElementById('bench-zone');
+  const waitingZones=[
+    document.getElementById('waitingA-zone'),
+    document.getElementById('waitingB-zone'),
+    document.getElementById('waitingC-zone'),
+    document.getElementById('waitingD-zone')
+  ];
+
+  courtZone.querySelectorAll('.player').forEach(p=>benchZone.appendChild(p));
+  stopTimer(courtId);
+
+  for(let wz of waitingZones){
+    while(courtZone.querySelectorAll('.player').length<maxPlayersPerArea){
+      let next=wz.querySelector('.player');
+      if(!next) break;
+      courtZone.appendChild(next);
+    }
+    if(courtZone.querySelectorAll('.player').length>=maxPlayersPerArea){
+      startTimer(courtId);
+      break;
+    }
+  }
+
+  for(let i=0;i<waitingZones.length-1;i++){
+    while(waitingZones[i].querySelectorAll('.player').length<maxPlayersPerArea){
+      let next=waitingZones[i+1].querySelector('.player');
+      if(!next) break;
+      waitingZones[i].appendChild(next);
+    }
+  }
+}
+
+// 重置
+function resetAll(){ location.reload(); }
+
+// 啟用拖拉
+areaIds.forEach(id=>{
+  Sortable.create(document.getElementById(id),{
+    group:'players',
+    animation:150,
+    onAdd: evt=>{
+      const to=evt.to;
+      if(to.querySelectorAll('.player').length>maxPlayersPerArea && to.id!=='bench-zone'){
+        evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+        alert('此區最多只能容納4人');
+      } else {
+        if(to.id.includes("court") && to.querySelectorAll('.player').length===1){
+          startTimer(to.id.replace("-zone",""));
+        }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
